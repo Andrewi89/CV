@@ -504,9 +504,10 @@
 
       <!-- Contact Section Form -->
       <div class="row">
-        <div class="col-lg-8 mx-auto">
+        <div class="mx-auto justify-content-center">
           <!-- To configure the contact form email address, go to mail/contact_me.php and update the email address in the PHP file on line 19. -->
-          <form name="sentMessage" id="contactForm" novalidate="novalidate">
+
+          <!-- <form name="sentMessage" id="contactForm" novalidate="novalidate">
             <div class="control-group">
               <div class="form-group floating-label-form-group controls mb-0 pb-2">
                 <label>Name</label>
@@ -540,7 +541,10 @@
             <div class="form-group">
               <button type="submit" class="btn btn-secondary btn-xl" id="sendMessageButton">Send</button>
             </div>
-          </form>
+          </form> -->
+          <div class="form-group justify-content-center">
+            <button type="submit" onclick="location.href='mailto:andrew.ireland@me.com';" class="btn btn-secondary btn-xl mb-3" id="sendMessageButton">Contact Me</button>
+          </div>
         </div>
       </div>
 
