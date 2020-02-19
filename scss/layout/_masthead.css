@@ -1,23 +1,23 @@
 /*
 Error: Undefined mixin 'media-breakpoint-up'.
-        on line 16 of /Users/andy/Documents/GitHub/CV/scss/layout/_masthead.scss, in `media-breakpoint-up'
-        from line 16 of /Users/andy/Documents/GitHub/CV/scss/layout/_masthead.scss
+        on line 18 of /Users/andy/Documents/GitHub/CV/scss/layout/_masthead.scss, in `media-breakpoint-up'
+        from line 18 of /Users/andy/Documents/GitHub/CV/scss/layout/_masthead.scss
 
-11:   .masthead-avatar {
-12:     width: 15rem;
-13:   }
-14: }
-15: 
-16: @include media-breakpoint-up(lg) {
-17:   .masthead {
-18:     padding-top: calc(3rem + 104px);
-19:     // padding-bottom: 2rem;
-20:     .masthead-heading {
-21:       font-size: 6rem;
+13:   .masthead-avatar {
+14:     width: 15rem;
+15:   }
+16: }
+17: 
+18: @include media-breakpoint-up(lg) {
+19:   .masthead {
+20:     padding-top: calc(0rem + 104px);
+21:     // padding-bottom: 2rem;
+22:     .masthead-heading {
+23:       font-size: 6rem;
 
 Backtrace:
-/Users/andy/Documents/GitHub/CV/scss/layout/_masthead.scss:16:in `media-breakpoint-up'
-/Users/andy/Documents/GitHub/CV/scss/layout/_masthead.scss:16
+/Users/andy/Documents/GitHub/CV/scss/layout/_masthead.scss:18:in `media-breakpoint-up'
+/Users/andy/Documents/GitHub/CV/scss/layout/_masthead.scss:18
 /Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:348:in `block in visit_mixin'
 /Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/stack.rb:98:in `block in with_mixin'
 /Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/stack.rb:135:in `with_frame'
@@ -55,4 +55,4 @@ Backtrace:
 body:before {
   white-space: pre;
   font-family: monospace;
-  content: "Error: Undefined mixin 'media-breakpoint-up'.\A         on line 16 of /Users/andy/Documents/GitHub/CV/scss/layout/_masthead.scss, in `media-breakpoint-up'\A         from line 16 of /Users/andy/Documents/GitHub/CV/scss/layout/_masthead.scss\A \A 11:   .masthead-avatar {\A 12:     width: 15rem;\A 13:   }\A 14: }\A 15: \A 16: @include media-breakpoint-up(lg) {\A 17:   .masthead {\A 18:     padding-top: calc(3rem + 104px);\A 19:     // padding-bottom: 2rem;\A 20:     .masthead-heading {\A 21:       font-size: 6rem;"; }
+  content: "Error: Undefined mixin 'media-breakpoint-up'.\A         on line 18 of /Users/andy/Documents/GitHub/CV/scss/layout/_masthead.scss, in `media-breakpoint-up'\A         from line 18 of /Users/andy/Documents/GitHub/CV/scss/layout/_masthead.scss\A \A 13:   .masthead-avatar {\A 14:     width: 15rem;\A 15:   }\A 16: }\A 17: \A 18: @include media-breakpoint-up(lg) {\A 19:   .masthead {\A 20:     padding-top: calc(0rem + 104px);\A 21:     // padding-bottom: 2rem;\A 22:     .masthead-heading {\A 23:       font-size: 6rem;"; }

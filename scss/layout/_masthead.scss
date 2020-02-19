@@ -1,9 +1,11 @@
 .masthead {
   padding-top: calc(3rem + 74px);
+  vertical-align: middle;
   // padding-bottom: 2rem;
   .masthead-heading {
     font-size: 6rem;
     line-height: 6rem;
+
   }
   .masthead-subheading {
     font-size: 1.25rem;
@@ -15,11 +17,12 @@
 
 @include media-breakpoint-up(lg) {
   .masthead {
-    padding-top: calc(3rem + 104px);
+    padding-top: calc(0rem + 104px);
     // padding-bottom: 2rem;
     .masthead-heading {
       font-size: 6rem;
       line-height: 6rem;
+      vertical-align: middle;
     }
     .masthead-subheading {
       font-size: 1.5rem;
@@ -30,11 +33,12 @@
 
 @include media-breakpoint-up(xl) {
   .masthead {
-    padding-top: calc(3rem + 104px);
+    padding-top: calc(0rem + 104px);
     // padding-bottom: 2rem;
     .masthead-heading {
       font-size: 8rem;
       line-height: 8rem;
+      vertical-align: middle;
     }
     .masthead-subheading {
       font-size: 1.5rem;

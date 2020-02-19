@@ -7732,7 +7732,8 @@ button.close {
         color: #fff;
         background: #007bff; } }
 .masthead {
-  padding-top: calc(3rem + 74px); }
+  padding-top: calc(3rem + 74px);
+  vertical-align: middle; }
   .masthead .masthead-heading {
     font-size: 6rem;
     line-height: 6rem; }
@@ -7743,18 +7744,20 @@ button.close {
 
 @media (min-width: 992px) {
   .masthead {
-    padding-top: calc(3rem + 104px); }
+    padding-top: calc(0rem + 104px); }
     .masthead .masthead-heading {
       font-size: 6rem;
-      line-height: 6rem; }
+      line-height: 6rem;
+      vertical-align: middle; }
     .masthead .masthead-subheading {
       font-size: 1.5rem; } }
 @media (min-width: 1200px) {
   .masthead {
-    padding-top: calc(3rem + 104px); }
+    padding-top: calc(0rem + 104px); }
     .masthead .masthead-heading {
       font-size: 8rem;
-      line-height: 8rem; }
+      line-height: 8rem;
+      vertical-align: middle; }
     .masthead .masthead-subheading {
       font-size: 1.5rem; } }
 .portfolio {
