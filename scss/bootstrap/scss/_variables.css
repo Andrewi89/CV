@@ -1,0 +1,58 @@
+/*
+Error: (0: 0, 1: 0.25rem, 2: 0.5rem, 3: 1rem, 4: 1.5rem, 5: 3rem) isn't a valid CSS value.
+        on line 236 of /Users/andy/Documents/GitHub/CV/scss/bootstrap/scss/_variables.scss
+
+231:   3: $spacer,
+232:   4: $spacer * 1.5,
+233:   5: $spacer * 3,
+234: ) !default;
+235: 
+236: $negative-spacers: negativify-map($spacers) !default;
+237: 
+238: // Body
+239: //
+240: // Settings for the `<body>` element.
+241: 
+
+Backtrace:
+/Users/andy/Documents/GitHub/CV/scss/bootstrap/scss/_variables.scss:236
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/script/value/map.rb:52:in `to_s'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/script/tree/funcall.rb:171:in `join'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/script/tree/funcall.rb:171:in `to_value'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/script/tree/funcall.rb:164:in `to_literal'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/script/tree/funcall.rb:155:in `_perform'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/script/tree/node.rb:50:in `perform'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:478:in `visit_variable'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/base.rb:36:in `visit'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:158:in `block in visit'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/stack.rb:79:in `block in with_base'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/stack.rb:135:in `with_frame'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/stack.rb:79:in `with_base'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:158:in `visit'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/base.rb:52:in `block in visit_children'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/base.rb:52:in `map'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/base.rb:52:in `visit_children'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:167:in `block in visit_children'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:179:in `with_environment'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:166:in `visit_children'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/base.rb:36:in `block in visit'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:186:in `visit_root'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/base.rb:36:in `visit'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:157:in `visit'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:10:in `visit'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/root_node.rb:36:in `css_tree'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/root_node.rb:29:in `render_with_sourcemap'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/engine.rb:389:in `_render_with_sourcemap'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/engine.rb:307:in `render_with_sourcemap'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/exec/sass_scss.rb:387:in `run'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/exec/sass_scss.rb:63:in `process_result'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/exec/base.rb:50:in `parse'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/exec/base.rb:18:in `parse!'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/bin/sass:13:in `<top (required)>'
+/Users/andy/.rbenv/versions/2.6.4/bin/sass:23:in `load'
+/Users/andy/.rbenv/versions/2.6.4/bin/sass:23:in `<main>'
+*/
+body:before {
+  white-space: pre;
+  font-family: monospace;
+  content: "Error: (0: 0, 1: 0.25rem, 2: 0.5rem, 3: 1rem, 4: 1.5rem, 5: 3rem) isn't a valid CSS value.\A         on line 236 of /Users/andy/Documents/GitHub/CV/scss/bootstrap/scss/_variables.scss\A \A 231:   3: $spacer,\A 232:   4: $spacer * 1.5,\A 233:   5: $spacer * 3,\A 234: ) !default;\A 235: \A 236: $negative-spacers: negativify-map($spacers) !default;\A 237: \A 238: // Body\A 239: //\A 240: // Settings for the `<body>` element.\A 241: "; }
