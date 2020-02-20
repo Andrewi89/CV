@@ -451,7 +451,7 @@ main {
       max-width: 960px; } }
   @media (min-width: 1200px) {
     .container {
-      max-width: 1300px; } }
+      max-width: 1700px; } }
 
 .container-fluid, .container-sm, .container-md, .container-lg, .container-xl {
   width: 100%;
@@ -471,7 +471,7 @@ main {
     max-width: 960px; } }
 @media (min-width: 1200px) {
   .container, .container-sm, .container-md, .container-lg, .container-xl {
-    max-width: 1300px; } }
+    max-width: 1700px; } }
 .row {
   display: flex;
   flex-wrap: wrap;
