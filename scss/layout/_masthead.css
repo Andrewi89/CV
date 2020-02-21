@@ -1,0 +1,58 @@
+/*
+Error: Undefined mixin 'media-breakpoint-up'.
+        on line 18 of /Users/andy/Documents/GitHub/CV/scss/layout/_masthead.scss, in `media-breakpoint-up'
+        from line 18 of /Users/andy/Documents/GitHub/CV/scss/layout/_masthead.scss
+
+13:   .masthead-avatar {
+14:     width: 15rem;
+15:   }
+16: }
+17: 
+18: @include media-breakpoint-up(lg) {
+19:   .masthead {
+20:     padding-top: calc(0rem + 104px);
+21:     // padding-bottom: 2rem;
+22:     .masthead-heading {
+23:       font-size: 6rem;
+
+Backtrace:
+/Users/andy/Documents/GitHub/CV/scss/layout/_masthead.scss:18:in `media-breakpoint-up'
+/Users/andy/Documents/GitHub/CV/scss/layout/_masthead.scss:18
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:348:in `block in visit_mixin'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/stack.rb:98:in `block in with_mixin'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/stack.rb:135:in `with_frame'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/stack.rb:98:in `with_mixin'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:346:in `visit_mixin'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/base.rb:36:in `visit'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:158:in `block in visit'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/stack.rb:79:in `block in with_base'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/stack.rb:135:in `with_frame'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/stack.rb:79:in `with_base'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:158:in `visit'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/base.rb:52:in `block in visit_children'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/base.rb:52:in `map'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/base.rb:52:in `visit_children'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:167:in `block in visit_children'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:179:in `with_environment'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:166:in `visit_children'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/base.rb:36:in `block in visit'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:186:in `visit_root'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/base.rb:36:in `visit'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:157:in `visit'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:10:in `visit'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/root_node.rb:36:in `css_tree'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/root_node.rb:29:in `render_with_sourcemap'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/engine.rb:389:in `_render_with_sourcemap'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/engine.rb:307:in `render_with_sourcemap'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/exec/sass_scss.rb:387:in `run'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/exec/sass_scss.rb:63:in `process_result'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/exec/base.rb:50:in `parse'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/exec/base.rb:18:in `parse!'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/bin/sass:13:in `<top (required)>'
+/Users/andy/.rbenv/versions/2.6.4/bin/sass:23:in `load'
+/Users/andy/.rbenv/versions/2.6.4/bin/sass:23:in `<main>'
+*/
+body:before {
+  white-space: pre;
+  font-family: monospace;
+  content: "Error: Undefined mixin 'media-breakpoint-up'.\A         on line 18 of /Users/andy/Documents/GitHub/CV/scss/layout/_masthead.scss, in `media-breakpoint-up'\A         from line 18 of /Users/andy/Documents/GitHub/CV/scss/layout/_masthead.scss\A \A 13:   .masthead-avatar {\A 14:     width: 15rem;\A 15:   }\A 16: }\A 17: \A 18: @include media-breakpoint-up(lg) {\A 19:   .masthead {\A 20:     padding-top: calc(0rem + 104px);\A 21:     // padding-bottom: 2rem;\A 22:     .masthead-heading {\A 23:       font-size: 6rem;"; }

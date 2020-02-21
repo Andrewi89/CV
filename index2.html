@@ -45,7 +45,7 @@
 
 
   <!-- Theme CSS -->
-  <link href="scss/styles.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
 
 </head>
 
@@ -53,10 +53,10 @@
 
 
   <!-- Navigation -->
-  <nav class="navbar navbar-expand-lg pt-4 bg-white fixed-top px-4" id="mainNav">
+  <nav class="navbar navbar-expand-lg bg-white fixed-top" id="mainNav">
     <div class="container">
-      <a class="navbar-brand js-scroll-trigger" href="#page-top">Andrew Ireland<span class="text-primary">.</span></a>
-      <button class="navbar-toggler navbar-toggler-right rounded" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false"
+      <a class="navbar-brand js-scroll-trigger" href="#page-top">Andrew Ireland</a>
+      <button class="navbar-toggler navbar-toggler-right font-weight-bold bg-primary text-white rounded" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false"
         aria-label="Toggle navigation">
         Menu
         <i class="fas fa-bars"></i>
@@ -64,22 +64,22 @@
       <div class="collapse navbar-collapse" id="navbarResponsive">
         <ul class="navbar-nav ml-auto">
           <li class="nav-item mx-0 mx-lg-1">
-            <a class="nav-link py-3 px-0 px-lg-0 rounded js-scroll-trigger" href="#portfolio">Portfolio</a>
+            <a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger" href="#portfolio">Portfolio</a>
           </li>
           <li class="nav-item mx-0 mx-lg-1">
-            <a class="nav-link py-3 px-0 px-lg-0 rounded js-scroll-trigger" href="#about">About</a>
+            <a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger" href="#about">About</a>
           </li>
           <li class="nav-item mx-0 mx-lg-1">
-            <a class="nav-link py-3 px-0 px-lg-0 rounded js-scroll-trigger" href="#experience">Experience</a>
+            <a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger" href="#experience">Experience</a>
           </li>
           <li class="nav-item mx-0 mx-lg-1">
-            <a class="nav-link py-3 px-0 px-lg-0 rounded js-scroll-trigger" href="#education">Education</a>
+            <a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger" href="#education">Education</a>
           </li>
           <li class="nav-item mx-0 mx-lg-1">
-            <a class="nav-link py-3 px-0 px-lg-0 rounded js-scroll-trigger" href="#skills">Skills</a>
+            <a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger" href="#skills">Skills</a>
           </li>
           <li class="nav-item mx-0 mx-lg-1">
-            <a class="nav-link py-3 px-0 px-lg-0 rounded js-scroll-trigger" href="#contact">Contact</a>
+            <a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger" href="#contact">Contact</a>
           </li>
         </ul>
       </div>
@@ -87,32 +87,16 @@
   </nav>
 
   <!-- Masthead -->
-  <header class="masthead mx-4 bg-white">
-    <div class="container pb-0 mb-0 d-flex flex-column">
-
-    <div class="row">
-
-      <!-- Masthead Heading -->
-      <div class="col-xl-6 col-lg-6 my-auto">
-        <div class="">
-          <h1 class="masthead-heading font-weight-light ">Hello,</h1>
-          <h1 class="masthead-heading font-weight-light pb-3">Welcome</h1>
-          <!-- Masthead Subheading -->
-          <!-- <p class="masthead-subheading font-weight-light">Let me introduce myself</p> -->
-
-          <a class="btn btn-primary mb-4 js-scroll-trigger" href="#portfolio" role="button">Check out my work <i class="fas fa-chevron-circle-right"></i></a>
-
-        </div>
-
-      </div>
-
+  <header class="masthead bg-primary text-white text-center">
+    <div class="container d-flex align-items-center flex-column">
 
       <!-- Masthead Avatar Image -->
-      <div class="col-xl col-lg">
-        <img class="img-fluid shadow-lg" src="img/AndrewIreland.jpg" alt="Andrew Ireland">
+      <div class="mb-5">
+        <img class="masthead-avatar shadow-lg rounded-circle" src="img/AndrewIreland.jpg" alt="Andrew Ireland">
       </div>
-    </div>
 
+      <!-- Masthead Heading -->
+      <h1 class="masthead-heading text-uppercase mb-0">Andrew Ireland</h1>
 
       <!-- Icon Divider -->
       <div class="divider-custom divider-light">
@@ -123,19 +107,18 @@
         <div class="divider-custom-line"></div>
       </div>
 
-
+      <!-- Masthead Subheading -->
+      <p class="masthead-subheading font-weight-light mb-0">Product Manager - Heating Engineer - Digital Native</p>
 
     </div>
   </header>
 
-
-
   <!-- Portfolio Section -->
-  <section class="page-section portfolio pb-3 px-lg-5" id="portfolio">
-    <div class="container mb-4">
+  <section class="page-section portfolio p-3 px-lg-5" id="portfolio">
+    <div class="container my-4">
 
       <!-- Portfolio Section Heading -->
-      <h2 class="page-section-heading text-center mb-0">Products I've Launched</h2>
+      <h2 class="page-section-heading text-center text-uppercase text-secondary mb-0">Products I've Launched</h2>
 
       <!-- Icon Divider -->
       <div class="divider-custom">
@@ -227,28 +210,27 @@
     </div>
   </section>
 
-
   <!-- About Section -->
-  <section class="page-section pt-0 my-0 pb-3 px-lg-4 d-flex" id="about">
-    <div class="container">
+  <section class="page-section bg-primary text-white mb-0 p-3 px-lg-5 d-flex" id="about">
+    <div class="container mt-4">
 
       <!-- About Section Heading -->
-      <h2 class="page-section-heading text-center">About Me</h2>
+      <h2 class="page-section-heading text-center text-uppercase text-white">About</h2>
 
       <!-- Icon Divider -->
-      <div class="divider-custom divider">
+      <div class="divider-custom divider-light">
         <div class="divider-custom-line"></div>
         <div class="divider-custom-icon">
-          <i class="fas fa-wrench"></i>
+          <i class="fas fa-address-card"></i>
         </div>
         <div class="divider-custom-line"></div>
       </div>
 
-
       <!-- About Section Content -->
       <div class="container mb-5">
-        <h1 class="mb-0">Andrew Ireland<span class="text-primary">.</span></h1>
-        <p class=" subheading mb-1">Product Manager - Heating Engineer - Digital Native</p>
+        <h1 class="mb-0">Andrew
+          <span class="text-secondary">Ireland</span>
+        </h1>
         <div class="subheading mb-3">Mapperly Road · Nottingham, NG3 5AN · (+44)7855 436230 ·
           <a href="mailto:Andrew.ireland@me.com">Andrew.Ireland@me.com</a>
         </div>
@@ -277,7 +259,6 @@
 
     </div>
   </section>
-
 
 
   <!-- Experience Section -->
@@ -366,14 +347,14 @@
   <!-- Education Section -->
 
 
-  <section class="page-section mb-0 p-3 px-lg-5 d-flex align-items-center" id="education">
+  <section class="page-section bg-primary text-white mb-0 p-3 px-lg-5 d-flex align-items-center" id="education">
     <div class="container mt-4">
 
       <!-- Education Section Heading -->
-      <h2 class="page-section-heading text-center text-uppercase">Education</h2>
+      <h2 class="page-section-heading text-center text-uppercase text-white">Education</h2>
 
       <!-- Icon Divider -->
-      <div class="divider-custom divider">
+      <div class="divider-custom divider-light">
         <div class="divider-custom-line"></div>
         <div class="divider-custom-icon">
           <i class="fas fa-user-graduate"></i>
@@ -548,14 +529,14 @@
   </section>
 
   <!-- Contact Section -->
-  <section class="page-section p-3 px-lg-5 d-flex" id="contact">
+  <section class="page-section bg-primary text-white p-3 px-lg-5 d-flex" id="contact">
     <div class="container mt-4">
 
       <!-- Contact Section Heading -->
-      <h2 class="page-section-heading text-center">Contact Me</h2>
+      <h2 class="page-section-heading text-center text-uppercase">Contact Me</h2>
 
       <!-- Icon Divider -->
-      <div class="divider-custom divider">
+      <div class="divider-custom divider-light">
         <div class="divider-custom-line"></div>
         <div class="divider-custom-icon">
           <i class="fas fa-address-book"></i>

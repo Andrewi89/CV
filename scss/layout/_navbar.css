@@ -1,0 +1,64 @@
+/*
+Error: Undefined variable: "$headings-font-family".
+        on line 5 of /Users/andy/Documents/GitHub/CV/scss/layout/_navbar.scss
+
+1: // Styling for the navbar
+2: #mainNav {
+3:   padding-top: 1rem;
+4:   padding-bottom: 0rem;
+5:   font-family: $headings-font-family;
+6:   font-weight: $headings-font-weight;
+7:   .navbar-brand {
+8:     color: $black;
+9:   }
+10:   .navbar-nav {
+
+Backtrace:
+/Users/andy/Documents/GitHub/CV/scss/layout/_navbar.scss:5
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/script/tree/variable.rb:49:in `_perform'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/script/tree/node.rb:50:in `perform'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:398:in `visit_prop'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/base.rb:36:in `visit'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:158:in `block in visit'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/stack.rb:79:in `block in with_base'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/stack.rb:135:in `with_frame'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/stack.rb:79:in `with_base'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:158:in `visit'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:440:in `block (2 levels) in visit_rule'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:440:in `map'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:440:in `block in visit_rule'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:179:in `with_environment'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:438:in `visit_rule'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/base.rb:36:in `visit'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:158:in `block in visit'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/stack.rb:79:in `block in with_base'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/stack.rb:135:in `with_frame'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/stack.rb:79:in `with_base'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:158:in `visit'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/base.rb:52:in `block in visit_children'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/base.rb:52:in `map'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/base.rb:52:in `visit_children'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:167:in `block in visit_children'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:179:in `with_environment'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:166:in `visit_children'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/base.rb:36:in `block in visit'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:186:in `visit_root'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/base.rb:36:in `visit'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:157:in `visit'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:10:in `visit'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/root_node.rb:36:in `css_tree'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/tree/root_node.rb:29:in `render_with_sourcemap'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/engine.rb:389:in `_render_with_sourcemap'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/engine.rb:307:in `render_with_sourcemap'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/exec/sass_scss.rb:387:in `run'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/exec/sass_scss.rb:63:in `process_result'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/exec/base.rb:50:in `parse'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/lib/sass/exec/base.rb:18:in `parse!'
+/Users/andy/.rbenv/versions/2.6.4/lib/ruby/gems/2.6.0/gems/sass-3.7.4/bin/sass:13:in `<top (required)>'
+/Users/andy/.rbenv/versions/2.6.4/bin/sass:23:in `load'
+/Users/andy/.rbenv/versions/2.6.4/bin/sass:23:in `<main>'
+*/
+body:before {
+  white-space: pre;
+  font-family: monospace;
+  content: "Error: Undefined variable: \"$headings-font-family\".\A         on line 5 of /Users/andy/Documents/GitHub/CV/scss/layout/_navbar.scss\A \A 1: // Styling for the navbar\A 2: #mainNav {\A 3:   padding-top: 1rem;\A 4:   padding-bottom: 0rem;\A 5:   font-family: $headings-font-family;\A 6:   font-weight: $headings-font-weight;\A 7:   .navbar-brand {\A 8:     color: $black;\A 9:   }\A 10:   .navbar-nav {"; }
