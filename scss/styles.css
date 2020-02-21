@@ -7708,9 +7708,9 @@ button.close {
       #mainNav .navbar-nav li.nav-item a.nav-link:hover {
         color: #343a40; }
       #mainNav .navbar-nav li.nav-item a.nav-link:active, #mainNav .navbar-nav li.nav-item a.nav-link:focus {
-        color: #fff; }
-      #mainNav .navbar-nav li.nav-item a.nav-link.active {
         color: #007bff; }
+      #mainNav .navbar-nav li.nav-item a.nav-link.active {
+        color: #fff; }
   #mainNav .navbar-toggler {
     font-size: 80%;
     padding: 0.8rem; }
@@ -7728,8 +7728,7 @@ button.close {
     #mainNav .navbar-nav > li.nav-item > a.nav-link.active {
       color: #007bff; }
       #mainNav .navbar-nav > li.nav-item > a.nav-link.active:active, #mainNav .navbar-nav > li.nav-item > a.nav-link.active:focus, #mainNav .navbar-nav > li.nav-item > a.nav-link.active:hover {
-        color: #fff;
-        background: #007bff; } }
+        color: #007bff; } }
 .masthead {
   padding-top: calc(3rem + 74px);
   vertical-align: middle; }

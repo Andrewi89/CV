@@ -17,10 +17,10 @@
         }
         &:active,
         &:focus {
-          color: $white;
+          color: $primary;
         }
         &.active {
-          color: $primary;
+          color: $white;
         }
       }
     }
@@ -48,8 +48,8 @@
       &:active,
       &:focus,
       &:hover {
-        color: $white;
-        background: $primary;
+        color: $primary;
+        // background: $primary;
       }
     }
   }
