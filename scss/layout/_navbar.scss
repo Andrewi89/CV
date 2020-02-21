@@ -43,8 +43,8 @@
       margin-top: 0;
     }
     .navbar-nav > li.nav-item > a.nav-link.active {
-      color: $white;
-      background: $primary;
+      color: $primary;
+      // background: $primary;
       &:active,
       &:focus,
       &:hover {
