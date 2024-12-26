@@ -11,6 +11,7 @@
       color: #333;
       margin: 0;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       height: 100vh;
@@ -28,10 +29,6 @@
       font-size: 1.2rem;
       margin-bottom: 1em;
     }
-    .joke {
-      font-style: italic;
-      color: #555;
-    }
     a {
       display: inline-block;
       margin-top: 20px;
@@ -46,10 +43,24 @@
     a:hover {
       background-color: #555;
     }
-    .logo {
-      margin-top: 30px;
-      font-size: 1rem;
-      color: #777;
+    footer {
+      margin-top: auto;
+      width: 100%;
+      background-color: #333;
+      color: #fff;
+      padding: 10px 0;
+    }
+    footer p {
+      margin: 0;
+      font-size: 0.9rem;
+    }
+    footer a {
+      color: #fff;
+      text-decoration: none;
+      margin: 0 10px;
+    }
+    footer a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
@@ -57,9 +68,15 @@
   <div class="container">
     <h1>404: Page Not Found</h1>
     <p>Oops! It seems you've taken a wrong turn.</p>
-    <p class="joke">Why did the scarecrow become a successful web developer? Because he was outstanding in his field!</p>
     <a href="/">Return to Homepage</a>
-    <div class="logo">andrewireland.co.uk</div>
   </div>
+  <!-- <footer>
+    <p>&copy; 2024 Andrew Ireland. All rights reserved.</p>
+    <p>
+      <a href="https://www.linkedin.com/in/andrew-ireland-123456789">LinkedIn</a> |
+      <a href="https://github.com/andrewireland">GitHub</a> |
+      <a href="https://twitter.com/andrewireland">Twitter</a>
+    </p>
+  </footer> -->
 </body>
 </html>
