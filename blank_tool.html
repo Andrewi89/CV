@@ -19,11 +19,12 @@
     <script>
 stlite.mount(
   {
-    requirements: ["streamlit", "requests", "pandas", "plotly", "numpy", "pydeck"],
+    requirements: ["streamlit", "plotly", "numpy"],
     entrypoint: "app.py",
     files: {
 "app.py": `
 import streamlit as st
+from datetime import datetime
 
 # Get the current year
 current_year = datetime.now().year
