@@ -17,12 +17,21 @@
     <div id="root"></div>
     <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.73.1/build/stlite.js"></script>
     <script>
-stlite.mount(
-  {
-    requirements: ["streamlit", "requests", "pandas", "plotly", "numpy", "pydeck"],
-    entrypoint: "streamlit_app.py",
-    files: {
-"streamlit_app.py": `
+      stlite.mount(
+        {
+          requirements: [
+            "streamlit",
+            "requests",
+            "pandas",
+            "plotly",
+            "plotly.express",
+            "numpy",
+            "pydeck",
+            "calendar"
+          ],
+          entrypoint: "streamlit_app.py",
+          files: {
+            "streamlit_app.py": `
 import streamlit as st
 import requests
 import pandas as pd
@@ -32,63 +41,96 @@ import calendar
 from datetime import datetime
 import pydeck as pdk
 
-# API keys
+# ----------------------------------------------------------------------------
+#                                 Constants
+# ----------------------------------------------------------------------------
+
 OPENCAGE_API_KEY = '7020ba3a8222470a89f14927f659da36'
 MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoiYW5keWk4OSIsImEiOiJjbHd0MW5ydXIwMXcyMm5zMzluY290bXU3In0.YH4RcDA5mxt5EK6mRwxKYA'
+MAX_PAYBACK_YEARS = 50  # Define a maximum number of years for payback calculation
+SELECTION_TO_VALUE = {'Small': 35, 'Medium': 45, 'Large': 55}
 
-# Calculate the current year
+# This year is used for "Days in Month" references
+YEAR = 2024
+
+# Calculate the current year for the footer
 current_year = datetime.now().year
 
-# Page setup
-st.set_page_config(
-    page_title="Solar Power Generation Estimate",
-    page_icon="☀️",
-    layout="wide",
-    # initial_sidebar_state="collapsed",
-)
+# ----------------------------------------------------------------------------
+#                            Helper Functions
+# ----------------------------------------------------------------------------
 
-# Define constants and input mappings
-YEAR = 2024
-SELECTION_TO_VALUE = {'Small': 35, 'Medium': 45, 'Large': 55}
-MAX_PAYBACK_YEARS = 50  # Define a maximum number of years for payback calculation
-
-# Define a function to get days in each month for a given year
 def get_days_in_month(year):
+    """
+    Return a list with the number of days for each month in the given year.
+    E.g. for 2024 (a leap year), you'd get [31, 29, 31, ...].
+    """
     return [calendar.monthrange(year, month)[1] for month in range(1, 13)]
 
-# Define a function to parse table data from API response
 def parse_table(data):
+    """
+    Parse the PVGIS table data returned by the API into a DataFrame.
+    Looks for lines containing 'Month' (header) and breaks on an empty line or 'Year'.
+    Returns:
+        - DataFrame
+        - All lines in the response (for debugging, if needed).
+    """
     lines = data.split('\\n')
     table_start, table_end = None, None
+    
     for i, line in enumerate(lines):
         if "Month" in line:
             table_start = i
+        # If table_start is found, look for a blank line or 'Year' to mark the end
         if table_start and (line.strip() == "" or "Year" in line):
             table_end = i
             break
+
     if table_start is not None and table_end is not None:
         header = lines[table_start].split()
-        table_data = [line.split() for line in lines[table_start + 1: table_end] if len(line.split()) == len(header)]
-        return pd.DataFrame(table_data, columns=header), lines
+        table_data = []
+        for line in lines[table_start + 1 : table_end]:
+            split_line = line.split()
+            if len(split_line) == len(header):
+                table_data.append(split_line)
+
+        df = pd.DataFrame(table_data, columns=header)
+        return df, lines
     else:
         raise ValueError("Could not find table data in the response.")
 
-# Function to calculate payback period with inflation
 def calculate_payback(total_cost, annual_savings, inflation_rate):
+    """
+    Calculate the payback period given a total up-front cost, annual
+    savings, and an inflation rate (as a %).
+    Returns:
+        - years (list of int)
+        - savings (list of float) cumulative
+        - boolean payback_achieved
+        - integer payback_years
+    """
     years = []
     savings = []
-    cumulative_savings = 0 - total_cost
+    cumulative_savings = -total_cost
     year = 1
+    
     while cumulative_savings < 0 and year <= MAX_PAYBACK_YEARS:
+        # Adjust savings for inflation each year
         adjusted_annual_savings = annual_savings * ((1 + inflation_rate / 100) ** (year - 1))
         cumulative_savings += adjusted_annual_savings
         years.append(year)
         savings.append(cumulative_savings)
         year += 1
-    return years, savings, cumulative_savings >= 0, year - 1
+    
+    payback_achieved = cumulative_savings >= 0
+    payback_years = year - 1  # Because we did year += 1 at the end
+    return years, savings, payback_achieved, payback_years
 
-# Function to find the address coords
 def get_address_suggestions(query, api_key):
+    """
+    Return up to 10 address suggestions from OpenCage for the given query.
+    Bounds are restricted (UK bounding box).
+    """
     url = f"https://api.opencagedata.com/geocode/v1/json?q={query}&key={api_key}&no_annotations=1&limit=10&bounds=-20.00000,33.06392,44.91211,59.62333"
     response = requests.get(url)
     if response.status_code == 200:
@@ -97,6 +139,9 @@ def get_address_suggestions(query, api_key):
     return []
 
 def geocode_address(address, api_key):
+    """
+    Return (lat, lng) for a single address string. 
+    """
     url = f"https://api.opencagedata.com/geocode/v1/json?q={address}&key={api_key}&no_annotations=1&limit=5"
     response = requests.get(url)
     if response.status_code == 200:
@@ -105,314 +150,578 @@ def geocode_address(address, api_key):
             return results[0]['geometry']['lat'], results[0]['geometry']['lng']
     return None, None
 
-# Streamlit app
+# ----------------------------------------------------------------------------
+#                               Streamlit App
+# ----------------------------------------------------------------------------
+
+st.set_page_config(
+    page_title="Solar Power Generation Estimate",
+    page_icon="☀️",
+    layout="wide",
+)
+
+# Title / Intro
 st.title("Solar PV with Power Diversion Estimator")
-st.write("Welcome, I've built this app to retrieve solar energy production data, estimate hot water usage and solar power diversion based on your given information and location.")
+st.write(
+    "Welcome! This app retrieves solar energy production data, estimates hot water usage, "
+    "and calculates solar power diversion based on your inputs and location."
+)
 
-# Address input with autocomplete
-query = st.text_input("Enter your properties address:")
+# Address Input
+query = st.text_input("Enter your property's address:")
 
-# Get suggestions as the user types
+# Autocomplete suggestions
 suggestions = get_address_suggestions(query, OPENCAGE_API_KEY) if query else []
-
 selected_address = st.selectbox("Select an address:", suggestions)
 
-# Sidebar settings
+# Sidebar configuration
 st.sidebar.header("Settings for geeks")
 st.sidebar.subheader("These settings are optional")
-st.sidebar.write("*If you change a setting after pressing calculate, you will need to press calculate again, just whilst I figure out how to retrigger it*")
+st.sidebar.write(
+    "*If you change a setting after pressing calculate, you will need to press calculate again, "
+    "just whilst I figure out how to re-trigger it.*"
+)
 
 # Solar PV settings
-system_loss = st.sidebar.number_input("PV System Loss (%)", min_value=0.0, max_value=100.0, step=1.0, value=14.0)
-aspect = st.sidebar.number_input("PV System Orientation (°)", min_value=0.0, max_value=360.0, step=1.0, value=30.0)
+system_loss = st.sidebar.number_input(
+    "PV System Loss (%)", min_value=0.0, max_value=100.0, step=1.0, value=14.0
+)
+aspect = st.sidebar.number_input(
+    "PV System Orientation (°)", min_value=0.0, max_value=360.0, step=1.0, value=30.0
+)
 
 # Heat pump settings
-heatpump_avg_pwr_dhw = st.sidebar.number_input("Heat Pump Average Power Consumption in DHW mode (kW)", min_value=0.0, max_value=100.0, step=1.0, value=2.0)
+heatpump_avg_pwr_dhw = st.sidebar.number_input(
+    "Heat Pump Average Power Consumption in DHW mode (kW)",
+    min_value=0.0,
+    max_value=100.0,
+    step=1.0,
+    value=2.0,
+)
 
 # Energy settings
-annual_elec = st.sidebar.number_input("Annual Electrical Consumption (kWh)", min_value=0.0, max_value=100000.0, step=1.0, value=2400.0)
-off_peak_coverage = st.sidebar.slider('% of hot water charged using off peak electricity annually', 0, 100, 60)
+annual_elec = st.sidebar.number_input(
+    "Annual Electrical Consumption (kWh)",
+    min_value=0.0,
+    max_value=100000.0,
+    step=1.0,
+    value=2400.0,
+)
+off_peak_coverage = st.sidebar.slider(
+    "% of hot water charged using off peak electricity annually",
+    0,
+    100,
+    60
+)
 
 # Energy Prices
-export_cost = st.sidebar.number_input('Export Price paid per kWh', min_value=0.0, max_value=10.0, step=0.01, value=0.045)
-elec_peak_cost = st.sidebar.number_input('Electricity Peak price per kWh', min_value=0.0, max_value=10.0, step=0.01, value=0.24)
-elec_off_peak_cost = st.sidebar.number_input('Electricity Off Peak price per kWh', min_value=0.0, max_value=10.0, step=0.01, value=0.075)
-gas_cost = st.sidebar.number_input('Gas price per kWh', min_value=0.0, max_value=10.0, step=0.01, value=0.068)
+export_cost = st.sidebar.number_input(
+    "Export Price paid per kWh",
+    min_value=0.0,
+    max_value=10.0,
+    step=0.01,
+    value=0.045
+)
+elec_peak_cost = st.sidebar.number_input(
+    "Electricity Peak price per kWh",
+    min_value=0.0,
+    max_value=10.0,
+    step=0.01,
+    value=0.24
+)
+elec_off_peak_cost = st.sidebar.number_input(
+    "Electricity Off Peak price per kWh",
+    min_value=0.0,
+    max_value=10.0,
+    step=0.01,
+    value=0.075
+)
+gas_cost = st.sidebar.number_input(
+    "Gas price per kWh",
+    min_value=0.0,
+    max_value=10.0,
+    step=0.01,
+    value=0.068
+)
 
 # Inflation Rate
-inflation_rate = st.sidebar.number_input("Annual Inflation Rate (%)", min_value=0.0, max_value=100.0, step=0.1, value=3.0)
+inflation_rate = st.sidebar.number_input(
+    "Annual Inflation Rate (%)",
+    min_value=0.0,
+    max_value=100.0,
+    step=0.1,
+    value=3.0
+)
 
-# Geocode and display the address when the user selects an address
+# Geocoding and map display
 if selected_address:
     lat, lon = geocode_address(selected_address, OPENCAGE_API_KEY)
     if lat and lon:
-        # st.write(f"The coordinates for {selected_address} are:")
-        # st.write(f"Latitude: {lat}")
-        # st.write(f"Longitude: {lon}")
-        latitude = lat
-        longitude = lon
-        
-        # Show location on Pydeck map
-        st.pydeck_chart(pdk.Deck(
-            map_style='mapbox://styles/mapbox/streets-v11',
-            initial_view_state=pdk.ViewState(
-                latitude=lat,
-                longitude=lon,
-                zoom=12,
-                pitch=50,
-            ),
-            layers=[
-                pdk.Layer(
-                    'ScatterplotLayer',
-                    data=[{'position': [lon, lat], 'size': 100}],
-                    get_position='position',
-                    get_radius=25,
-                    get_color=[255, 0, 0],
-                    pickable=True,
+        # Show location on a Pydeck map
+        st.pydeck_chart(
+            pdk.Deck(
+                map_style="mapbox://styles/mapbox/streets-v11",
+                initial_view_state=pdk.ViewState(
+                    latitude=lat, longitude=lon, zoom=12, pitch=50
                 ),
-            ],
-            tooltip={"text": selected_address}
-        ), use_container_width=True) 
-        
-        # Create an input form
+                layers=[
+                    pdk.Layer(
+                        "ScatterplotLayer",
+                        data=[{"position": [lon, lat], "size": 100}],
+                        get_position="position",
+                        get_radius=25,
+                        get_color=[255, 0, 0],
+                        pickable=True,
+                    )
+                ],
+                tooltip={"text": selected_address},
+            ),
+            use_container_width=True
+        )
+
+        # Create an input form for additional user data
         with st.form("input_form"):
-            st.write("**Firstly, Let us know a little bit about you**")
-                
-            num_people = st.slider('Number of People living at home?', 1, 10, 2)
-            litre_per_person = st.selectbox('How Much Hot Water Do you Use?', list(SELECTION_TO_VALUE.keys()), index=1)
+            st.write("**Firstly, let us know a little bit about you**")
+            num_people = st.slider(
+                "Number of People living at home?", 1, 10, 2
+            )
+            litre_per_person = st.selectbox(
+                "How Much Hot Water Do you Use?",
+                list(SELECTION_TO_VALUE.keys()),
+                index=1
+            )
             litre_per_person_selected_value = SELECTION_TO_VALUE[litre_per_person]
             total_litres = litre_per_person_selected_value * num_people
 
             st.divider()
-            st.write("**Now, Let's get the information for your solar PV**")
-            peak_power = st.number_input("Peak Power (kWp)", min_value=1.0, step=1.0, value=4.2)
-            angle = st.number_input("Angle (°)", min_value=0.0, max_value=100.0, step=1.0, value=35.0)
+            st.write("**Now, let's get the information for your solar PV**")
+            peak_power = st.number_input(
+                "Peak Power (kWp)",
+                min_value=1.0,
+                step=1.0,
+                value=4.2
+            )
+            angle = st.number_input(
+                "Angle (°)",
+                min_value=0.0,
+                max_value=100.0,
+                step=1.0,
+                value=35.0
+            )
+
             st.divider()
-            st.write("**And finally, how much are you spending on your power diverter?**")
-            power_diverter_price = st.number_input("Power Diverter Unit Price (£)", min_value=0.0, max_value=1000.0, step=1.0, value=445.0)
-            power_diverter_install_price = st.number_input("Power Diverter Install Price (£)", min_value=0.0, max_value=1000.0, step=1.0, value=120.0)
+            st.write("**Finally, how much are you spending on your power diverter?**")
+            power_diverter_price = st.number_input(
+                "Power Diverter Unit Price (£)",
+                min_value=0.0,
+                max_value=1000.0,
+                step=1.0,
+                value=445.0
+            )
+            power_diverter_install_price = st.number_input(
+                "Power Diverter Install Price (£)",
+                min_value=0.0,
+                max_value=1000.0,
+                step=1.0,
+                value=120.0
+            )
 
             submit_button = st.form_submit_button("Calculate")
-        
-            # Store the input values in session state
+
+            # On form submit, store in session_state
             if submit_button:
-                st.session_state['num_people'] = num_people
-                st.session_state['litre_per_person_selected_value'] = litre_per_person_selected_value
-                st.session_state['total_litres'] = total_litres
-                st.session_state['latitude'] = latitude
-                st.session_state['longitude'] = longitude
-                st.session_state['peak_power'] = peak_power
-                st.session_state['system_loss'] = system_loss
-                st.session_state['angle'] = angle
-                st.session_state['heatpump_avg_pwr_dhw'] = heatpump_avg_pwr_dhw
-                st.session_state['annual_elec'] = annual_elec
-                st.session_state['off_peak_coverage'] = off_peak_coverage
-                st.session_state['export_cost'] = export_cost
-                st.session_state['elec_peak_cost'] = elec_peak_cost
-                st.session_state['elec_off_peak_cost'] = elec_off_peak_cost
-                st.session_state['gas_cost'] = gas_cost
-                st.session_state['power_diverter_price'] = power_diverter_price
-                st.session_state['power_diverter_install_price'] = power_diverter_install_price
-                st.session_state['inflation_rate'] = inflation_rate
-                st.session_state['aspect'] = aspect
-                
+                st.session_state["num_people"] = num_people
+                st.session_state["litre_per_person_selected_value"] = litre_per_person_selected_value
+                st.session_state["total_litres"] = total_litres
+                st.session_state["latitude"] = lat
+                st.session_state["longitude"] = lon
+                st.session_state["peak_power"] = peak_power
+                st.session_state["system_loss"] = system_loss
+                st.session_state["angle"] = angle
+                st.session_state["heatpump_avg_pwr_dhw"] = heatpump_avg_pwr_dhw
+                st.session_state["annual_elec"] = annual_elec
+                st.session_state["off_peak_coverage"] = off_peak_coverage
+                st.session_state["export_cost"] = export_cost
+                st.session_state["elec_peak_cost"] = elec_peak_cost
+                st.session_state["elec_off_peak_cost"] = elec_off_peak_cost
+                st.session_state["gas_cost"] = gas_cost
+                st.session_state["power_diverter_price"] = power_diverter_price
+                st.session_state["power_diverter_install_price"] = power_diverter_install_price
+                st.session_state["inflation_rate"] = inflation_rate
+                st.session_state["aspect"] = aspect
     else:
-        st.write("Address not found. Please enter a valid address.")
+        st.warning("Address not found. Please enter a valid address.")
 
-    # Check if session state is populated and calculate
-    if 'num_people' in st.session_state:
-        num_people = st.session_state['num_people']
-        litre_per_person_selected_value = st.session_state['litre_per_person_selected_value']
-        total_litres = st.session_state['total_litres']
-        latitude = st.session_state['latitude']
-        longitude = st.session_state['longitude']
-        peak_power = st.session_state['peak_power']
-        system_loss = st.session_state['system_loss']
-        angle = st.session_state['angle']
-        heatpump_avg_pwr_dhw = st.session_state['heatpump_avg_pwr_dhw']
-        annual_elec = st.session_state['annual_elec']
-        off_peak_coverage = st.session_state['off_peak_coverage']
-        export_cost = st.session_state['export_cost']
-        elec_peak_cost = st.session_state['elec_peak_cost']
-        elec_off_peak_cost = st.session_state['elec_off_peak_cost']
-        gas_cost = st.session_state['gas_cost']
-        power_diverter_price = st.session_state['power_diverter_price']
-        power_diverter_install_price = st.session_state['power_diverter_install_price']
-        inflation_rate = st.session_state['inflation_rate']
-        aspect = st.session_state['aspect']
+    # Main calculation block
+    if "num_people" in st.session_state:
+        # Retrieve from session_state
+        num_people = st.session_state["num_people"]
+        litre_per_person_selected_value = st.session_state["litre_per_person_selected_value"]
+        total_litres = st.session_state["total_litres"]
+        latitude = st.session_state["latitude"]
+        longitude = st.session_state["longitude"]
+        peak_power = st.session_state["peak_power"]
+        system_loss = st.session_state["system_loss"]
+        angle = st.session_state["angle"]
+        heatpump_avg_pwr_dhw = st.session_state["heatpump_avg_pwr_dhw"]
+        annual_elec = st.session_state["annual_elec"]
+        off_peak_coverage = st.session_state["off_peak_coverage"]
+        export_cost = st.session_state["export_cost"]
+        elec_peak_cost = st.session_state["elec_peak_cost"]
+        elec_off_peak_cost = st.session_state["elec_off_peak_cost"]
+        gas_cost = st.session_state["gas_cost"]
+        power_diverter_price = st.session_state["power_diverter_price"]
+        power_diverter_install_price = st.session_state["power_diverter_install_price"]
+        inflation_rate = st.session_state["inflation_rate"]
+        aspect = st.session_state["aspect"]
 
-        url = f"https://re.jrc.ec.europa.eu/api/PVcalc?lat={latitude}&lon={longitude}&peakpower={peak_power}&loss={system_loss}&angle={angle}&aspect={aspect}"
-
+        # Attempt to get solar data
+        url = (
+            f"https://re.jrc.ec.europa.eu/api/PVcalc?"
+            f"lat={latitude}&lon={longitude}&peakpower={peak_power}"
+            f"&loss={system_loss}&angle={angle}&aspect={aspect}"
+        )
         response = requests.get(url)
-
         if response.status_code == 200:
             data = response.text
-
             try:
                 df, _ = parse_table(data)
-                df['Month'] = pd.to_numeric(df['Month'])
-                df['E_m'] = pd.to_numeric(df['E_m'])
-                df['H(i)_m'] = pd.to_numeric(df['H(i)_m'])
-                df['E_d'] = pd.to_numeric(df['E_d'])
+                # Convert columns to numeric
+                df["Month"] = pd.to_numeric(df["Month"])
+                df["E_m"] = pd.to_numeric(df["E_m"])
+                df["H(i)_m"] = pd.to_numeric(df["H(i)_m"])
+                df["E_d"] = pd.to_numeric(df["E_d"])
 
-                df['daily peak sunshine hours'] = 5
-                df['average kWh per hour'] = df['E_d'] / df['daily peak sunshine hours']
-                df['heat pump possible'] = np.where(df['average kWh per hour'] >= 2, True, False)
+                # Example columns that might be used for additional logic
+                df["daily peak sunshine hours"] = 5
+                df["average kWh per hour"] = df["E_d"] / df["daily peak sunshine hours"]
+                df["heat pump possible"] = np.where(df["average kWh per hour"] >= 2, True, False)
 
+                # Pre-calculate days in month to avoid repeated calls
+                days_in_month = get_days_in_month(YEAR)
                 daily_elec_factor = annual_elec / 365.0
 
-                fixed_data = {
-                    "Month": ["January", "February", "March", "April", "May", "June",
-                            "July", "August", "September", "October", "November", "December"],
-                    "Days in the Month": get_days_in_month(YEAR),
-                    "Electrical Consumption": [8.11, 9.06, 11, 13.98, 15, 16.90, 16.3, 16, 0.98, 11, 10.06, 8.11],
-                    "Surplus Energy": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    "Solar Power Exported": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    "Hot Water Factor": [1.11, 1.06, 1.02, 0.98, 0.94, 0.90, 0.90, 0.94, 0.98, 1.02, 1.06, 1.11]
-                }
+                # Construct df_elec for monthly usage and generation
+                df_elec = pd.DataFrame({
+                    "Month": [
+                        "January", "February", "March", "April",
+                        "May", "June", "July", "August",
+                        "September", "October", "November", "December"
+                    ],
+                    "Days in the Month": days_in_month,
+                })
+                
+                df_elec["Electrical Consumption"] = daily_elec_factor * df_elec["Days in the Month"]
+                df_elec["Solar Generation"] = df["E_m"]
+                df_elec["Surplus Energy"] = np.maximum(
+                    df_elec["Solar Generation"] - df_elec["Electrical Consumption"], 
+                    0
+                )
 
-                df_elec = pd.DataFrame(fixed_data)
-                df_elec['Days in the Month'] = get_days_in_month(YEAR)
+                # Hot water usage
+                df_elec["Hot Water Factor"] = [
+                    1.11, 1.06, 1.02, 0.98, 0.94, 0.90,
+                    0.90, 0.94, 0.98, 1.02, 1.06, 1.11
+                ]
+                df_elec["Monthly Water Usage"] = (
+                    total_litres * df_elec["Days in the Month"]
+                ) * df_elec["Hot Water Factor"]
 
-                df_elec['Electrical Consumption'] = daily_elec_factor * df_elec['Days in the Month']
-                df_elec['Surplus Energy'] = np.maximum(df['E_m'] - df_elec['Electrical Consumption'], 0)
-                df_elec['Solar Generation'] = df['E_m']
+                # kWh of litreshot water used (base formula)
+                df_elec["kWh of Litres used"] = (
+                    df_elec["Monthly Water Usage"] * 4.18 * 37
+                ) / 3600.0
 
-                df_elec['Monthly Water Usage'] = (total_litres * df_elec['Days in the Month']) * df_elec['Hot Water Factor']
-                df_elec['kWh of Litres used'] = (df_elec['Monthly Water Usage'] * 4.18 * 37) / 3600
+                # You can tweak these lines as needed for your logic
+                df_elec["Hot Water Consumption"] = (
+                    (df_elec["kWh of Litres used"] * 0.15)
+                    + df_elec["kWh of Litres used"]
+                ) + (1.9 * df_elec["Days in the Month"])
 
-                df_elec['Hot Water Consumption'] = ((df_elec['kWh of Litres used'] * 0.15) + df_elec['kWh of Litres used']) + (1.9 * df_elec['Days in the Month'])
-                df_elec['total indirect cylinder inc losses'] = ((df_elec['kWh of Litres used'] * 0.15) + df_elec['kWh of Litres used']) + (1.9 * df_elec['Days in the Month']) + (df_elec['Days in the Month']) * 14*((0.0091*1+0.0245*(1-0.1))*5+0.0263)
+                df_elec["total indirect cylinder inc losses"] = (
+                    df_elec["Hot Water Consumption"]
+                    + (df_elec["Days in the Month"]) * 14 * (
+                        (0.0091 * 1 + 0.0245 * (1 - 0.1)) * 5 + 0.0263
+                    )
+                )
 
-                df_elec['DHW adj for pwr div direct cylinder'] = np.maximum(df_elec['Hot Water Consumption'] - df_elec['Surplus Energy'], 0)
-                df_elec['DHW adj for pwr div indirect cylinder'] = np.maximum(df_elec['total indirect cylinder inc losses'] - df_elec['Surplus Energy'], 0)
-                df_elec['Solar Power Diverted'] = np.maximum(df_elec['Hot Water Consumption'] - df_elec['DHW adj for pwr div direct cylinder'], 0)
-                df_elec['Solar Power Diverted Indirect Cylinder'] = np.maximum(df_elec['total indirect cylinder inc losses'] - df_elec['DHW adj for pwr div indirect cylinder'], 0)
+                # DHW adj for direct / indirect cylinder
+                df_elec["DHW adj for pwr div direct cylinder"] = np.maximum(
+                    df_elec["Hot Water Consumption"] - df_elec["Surplus Energy"], 
+                    0
+                )
+                df_elec["DHW adj for pwr div indirect cylinder"] = np.maximum(
+                    df_elec["total indirect cylinder inc losses"] - df_elec["Surplus Energy"], 
+                    0
+                )
 
+                # Power diverted
+                df_elec["Solar Power Diverted"] = np.maximum(
+                    df_elec["Hot Water Consumption"] 
+                    - df_elec["DHW adj for pwr div direct cylinder"], 
+                    0
+                )
+                df_elec["Solar Power Diverted Indirect Cylinder"] = np.maximum(
+                    df_elec["total indirect cylinder inc losses"] 
+                    - df_elec["DHW adj for pwr div indirect cylinder"], 
+                    0
+                )
+
+                # ---------------- Cost DataFrame ----------------
                 df_costs = pd.DataFrame()
-                df_costs['Gas Hot Water Costs'] = (gas_cost / 0.75) * df_elec['total indirect cylinder inc losses']
-                df_costs['Off Peak Electricity Hot Water Costs'] = elec_off_peak_cost * df_elec['Hot Water Consumption']
-                df_costs['Peak Electricity Hot Water Costs'] = elec_peak_cost * df_elec['Hot Water Consumption']
-                df_costs['Mixed Peak & Off Peak Electricity Hot Water Costs'] = elec_off_peak_cost * (df_elec['Hot Water Consumption'] * (off_peak_coverage / 100)) + (elec_peak_cost * df_elec['Hot Water Consumption'] * (1 - (off_peak_coverage / 100)))
-                df_costs['Mixed Peak & Off Peak Electricity Hot Water Costs with solar'] = elec_off_peak_cost * (df_elec['DHW adj for pwr div direct cylinder'] * (off_peak_coverage / 100)) + (elec_peak_cost * df_elec['DHW adj for pwr div direct cylinder'] * (1 - (off_peak_coverage / 100)))
-                df_costs['Peak Electricity Hot Water cost With Heat Pump'] = (elec_peak_cost / 2.8) * df_elec['Solar Power Diverted Indirect Cylinder']
-                df_costs['Off Peak Electricity Hot Water cost With Heat Pump'] = (elec_off_peak_cost / 2.8) * df_elec['Solar Power Diverted Indirect Cylinder']
-                df_costs['Mixed Peak & Off Peak Electricity Hot Water cost With Heat Pump'] = (elec_off_peak_cost / 2.8) * (df_elec['total indirect cylinder inc losses'] * (off_peak_coverage / 100)) + ((elec_peak_cost / 2.8) * df_elec['total indirect cylinder inc losses'] * (1 - (off_peak_coverage / 100)))
+                df_costs["Gas Hot Water Costs"] = (
+                    gas_cost / 0.75
+                ) * df_elec["total indirect cylinder inc losses"]
 
+                df_costs["Off Peak Electricity Hot Water Costs"] = (
+                    elec_off_peak_cost * df_elec["Hot Water Consumption"]
+                )
+                df_costs["Peak Electricity Hot Water Costs"] = (
+                    elec_peak_cost * df_elec["Hot Water Consumption"]
+                )
+                df_costs["Mixed Peak & Off Peak Electricity Hot Water Costs"] = (
+                    elec_off_peak_cost 
+                    * (df_elec["Hot Water Consumption"] * (off_peak_coverage / 100.0))
+                    + elec_peak_cost
+                    * (df_elec["Hot Water Consumption"] * (1 - (off_peak_coverage / 100.0)))
+                )
+                df_costs["Mixed Peak & Off Peak Electricity Hot Water Costs with solar"] = (
+                    elec_off_peak_cost 
+                    * (df_elec["DHW adj for pwr div direct cylinder"] * (off_peak_coverage / 100.0))
+                    + elec_peak_cost
+                    * (df_elec["DHW adj for pwr div direct cylinder"] * (1 - (off_peak_coverage / 100.0)))
+                )
+                df_costs["Peak Electricity Hot Water cost With Heat Pump"] = (
+                    (elec_peak_cost / 2.8) 
+                    * df_elec["Solar Power Diverted Indirect Cylinder"]
+                )
+                df_costs["Off Peak Electricity Hot Water cost With Heat Pump"] = (
+                    (elec_off_peak_cost / 2.8)
+                    * df_elec["Solar Power Diverted Indirect Cylinder"]
+                )
+                df_costs["Mixed Peak & Off Peak Electricity Hot Water cost With Heat Pump"] = (
+                    (elec_off_peak_cost / 2.8)
+                    * (df_elec["total indirect cylinder inc losses"] * (off_peak_coverage / 100.0))
+                    + ((elec_peak_cost / 2.8)
+                    * df_elec["total indirect cylinder inc losses"]
+                    * (1 - (off_peak_coverage / 100.0)))
+                )
+
+                # ---------------- Export DataFrame ----------------
                 df_export = pd.DataFrame()
-                df_export['Solar Export without power diversion'] = export_cost * df_elec['Surplus Energy']
-                df_export['Solar Export with power diversion direct cylinder'] = export_cost * (df_elec['Surplus Energy'] - df_elec['Solar Power Diverted'])
-                df_export['Solar Export with power diversion indirect cylinder'] = export_cost * (df_elec['Surplus Energy'] - df_elec['Solar Power Diverted Indirect Cylinder'])
+                df_export["Solar Export without power diversion"] = (
+                    export_cost * df_elec["Surplus Energy"]
+                )
+                df_export["Solar Export with power diversion direct cylinder"] = (
+                    export_cost 
+                    * (df_elec["Surplus Energy"] - df_elec["Solar Power Diverted"])
+                )
+                df_export["Solar Export with power diversion indirect cylinder"] = (
+                    export_cost
+                    * (df_elec["Surplus Energy"] - df_elec["Solar Power Diverted Indirect Cylinder"])
+                )
 
+                # ---------------- Savings DataFrame ----------------
                 df_savings = pd.DataFrame()
-                df_savings['Gas Savings'] = (gas_cost / 0.75) * df_elec['Solar Power Diverted Indirect Cylinder']
-                df_savings['Off Peak direct electric Savings'] = elec_off_peak_cost * df_elec['Solar Power Diverted']
-                df_savings['Peak Direct electric Savings'] = elec_peak_cost * df_elec['Solar Power Diverted']
-                df_savings['Mixed Peak & Off Peak Electricity Hot Water Savings'] = elec_off_peak_cost * (df_elec['Solar Power Diverted'] * (off_peak_coverage / 100)) + (elec_peak_cost * df_elec['Solar Power Diverted'] * (1 - (off_peak_coverage / 100)))
-                df_savings['Peak Electricity Hot Water Savings With Heat Pump'] = (elec_peak_cost / 2.8) * df_elec['Solar Power Diverted Indirect Cylinder']
-                df_savings['Using Heat Pump Only - No Power Diversion'] = np.where(df['average kWh per hour'] >= heatpump_avg_pwr_dhw, (elec_off_peak_cost / 2.8) * (df_elec['Solar Power Diverted Indirect Cylinder'] * (off_peak_coverage / 100)) + ((elec_peak_cost / 2.8) * df_elec['Solar Power Diverted Indirect Cylinder'] * (1 - (off_peak_coverage / 100))),0)
-                df_savings['Mixed Peak & Off Peak Electricity Hot Water Savings with heat pump'] = (elec_off_peak_cost / 2.8) * (df_elec['Solar Power Diverted Indirect Cylinder'] * (off_peak_coverage / 100)) + ((elec_peak_cost / 2.8) * df_elec['Solar Power Diverted Indirect Cylinder'] * (1 - (off_peak_coverage / 100)))
+                df_savings["Gas Savings"] = (
+                    (gas_cost / 0.75) * df_elec["Solar Power Diverted Indirect Cylinder"]
+                )
+                df_savings["Off Peak direct electric Savings"] = (
+                    elec_off_peak_cost * df_elec["Solar Power Diverted"]
+                )
+                df_savings["Peak Direct electric Savings"] = (
+                    elec_peak_cost * df_elec["Solar Power Diverted"]
+                )
+                df_savings["Mixed Peak & Off Peak Electricity Hot Water Savings"] = (
+                    elec_off_peak_cost
+                    * (df_elec["Solar Power Diverted"] * (off_peak_coverage / 100.0))
+                    + elec_peak_cost
+                    * (df_elec["Solar Power Diverted"] * (1 - (off_peak_coverage / 100.0)))
+                )
+                df_savings["Peak Electricity Hot Water Savings With Heat Pump"] = (
+                    (elec_peak_cost / 2.8) * df_elec["Solar Power Diverted Indirect Cylinder"]
+                )
+                # This line is example logic checking if kWh >= heatpump_avg_pwr_dhw
+                df_savings["Using Heat Pump Only - No Power Diversion"] = np.where(
+                    df["average kWh per hour"] >= heatpump_avg_pwr_dhw,
+                    (
+                        (elec_off_peak_cost / 2.8) 
+                        * (df_elec["Solar Power Diverted Indirect Cylinder"] * (off_peak_coverage / 100.0))
+                        + ((elec_peak_cost / 2.8)
+                        * df_elec["Solar Power Diverted Indirect Cylinder"]
+                        * (1 - (off_peak_coverage / 100.0)))
+                    ),
+                    0
+                )
+                df_savings["Mixed Peak & Off Peak Electricity Hot Water Savings with heat pump"] = (
+                    (elec_off_peak_cost / 2.8)
+                    * (df_elec["Solar Power Diverted Indirect Cylinder"] * (off_peak_coverage / 100.0))
+                    + ((elec_peak_cost / 2.8)
+                    * df_elec["Solar Power Diverted Indirect Cylinder"]
+                    * (1 - (off_peak_coverage / 100.0)))
+                )
 
-                total_gas_cost = df_costs['Gas Hot Water Costs'].sum()
-                total_elec_cost = df_costs['Mixed Peak & Off Peak Electricity Hot Water Costs'].sum()
-                total_elec_cost_solar = df_costs['Mixed Peak & Off Peak Electricity Hot Water Costs with solar'].sum()
-                total_heatpump_cost =  df_costs['Mixed Peak & Off Peak Electricity Hot Water cost With Heat Pump'].sum()
-                total_peak_heatpump_cost =  df_costs['Peak Electricity Hot Water cost With Heat Pump'].sum()
-                total_off_peak_heatpump_cost = df_costs['Off Peak Electricity Hot Water cost With Heat Pump'].sum()
+                # ---------------- Totals ----------------
                 total_power_diverter_price = power_diverter_price + power_diverter_install_price
 
-                total_export = df_export['Solar Export without power diversion'].sum()
-                total_export_inc_pwr_diversion = df_export['Solar Export with power diversion direct cylinder'].sum()
+                total_gas_cost = df_costs["Gas Hot Water Costs"].sum()
+                total_elec_cost = df_costs["Mixed Peak & Off Peak Electricity Hot Water Costs"].sum()
+                total_elec_cost_solar = df_costs["Mixed Peak & Off Peak Electricity Hot Water Costs with solar"].sum()
+                total_heatpump_cost = df_costs["Mixed Peak & Off Peak Electricity Hot Water cost With Heat Pump"].sum()
 
-                total_gas_savings = df_savings['Gas Savings'].sum()
-                total_elec_off_peak_savings = df_savings['Off Peak direct electric Savings'].sum()
-                total_elec_peak_savings = df_savings['Peak Direct electric Savings'].sum()
-                total_mxed_savings = df_savings['Mixed Peak & Off Peak Electricity Hot Water Savings'].sum()
-                total_peak_heatpump_pwr_div_savings = df_savings['Peak Electricity Hot Water Savings With Heat Pump'].sum()
-                total_peak_heatpump_only_savings = df_savings['Using Heat Pump Only - No Power Diversion'].sum()
-                total_mxed_heatpump_savings = df_savings['Mixed Peak & Off Peak Electricity Hot Water Savings with heat pump'].sum()
+                total_export = df_export["Solar Export without power diversion"].sum()
+                total_export_inc_pwr_diversion = df_export["Solar Export with power diversion direct cylinder"].sum()
 
-                annual_gas_cost_inc_pwrd_export = (total_gas_cost - total_gas_savings) + (total_export - total_export_inc_pwr_diversion)
-                annual_electricity_cost_inc_pwrd_export = (total_elec_cost - total_mxed_savings) + (total_export - total_export_inc_pwr_diversion)
-                annual_heatpump_cost_inc_pwrd_export = (total_heatpump_cost - total_mxed_heatpump_savings) + (total_export - total_export_inc_pwr_diversion)
+                total_gas_savings = df_savings["Gas Savings"].sum()
+                total_mxed_savings = df_savings["Mixed Peak & Off Peak Electricity Hot Water Savings"].sum()
+                total_mxed_heatpump_savings = df_savings["Mixed Peak & Off Peak Electricity Hot Water Savings with heat pump"].sum()
+                total_peak_heatpump_only_savings = df_savings["Using Heat Pump Only - No Power Diversion"].sum()
 
-                st.header("Totals")
-                 # Add a select box for chart selection
-                chart_option = st.selectbox(
-                    'Select Payback Period Chart',
-                    ('Gas', 'Electric', 'Heat Pump')
+                annual_gas_cost_inc_pwrd_export = (
+                    (total_gas_cost - total_gas_savings) 
+                    + (total_export - total_export_inc_pwr_diversion)
                 )
-                st.subheader("Export Earnings")
-                st.write(f'Total export earnings without power diversion: £{total_export:,.2f}')
-                st.write(f'Total export earnings with power diversion: £{total_export_inc_pwr_diversion:,.2f}')
+                annual_electricity_cost_inc_pwrd_export = (
+                    (total_elec_cost - total_mxed_savings) 
+                    + (total_export - total_export_inc_pwr_diversion)
+                )
+                annual_heatpump_cost_inc_pwrd_export = (
+                    (total_heatpump_cost - total_mxed_heatpump_savings)
+                    + (total_export - total_export_inc_pwr_diversion)
+                )
 
+                # ---------------- Output & Plots ----------------
+                st.header("Totals")
+
+                # Chart option to show payback for Gas vs. Electric vs. Heat Pump
+                chart_option = st.selectbox(
+                    "Select Payback Period Chart",
+                    ("Gas", "Electric", "Heat Pump")
+                )
+
+                st.subheader("Export Earnings")
+                st.write(
+                    f"Total export earnings without power diversion: £{total_export:,.2f}"
+                )
+                st.write(
+                    f"Total export earnings with power diversion: £{total_export_inc_pwr_diversion:,.2f}"
+                )
                 st.divider()
 
-               
-                st.subheader(f'{chart_option} Costs')
-                if chart_option == 'Gas':
-                    years, savings, payback_achieved, payback_years = calculate_payback(total_power_diverter_price, total_gas_cost - annual_gas_cost_inc_pwrd_export, inflation_rate)
+                # Depending on chart_option, show relevant cost & payback
+                if chart_option == "Gas":
+                    annual_savings = total_gas_cost - annual_gas_cost_inc_pwrd_export
+                    years, savings, payback_achieved, payback_years = calculate_payback(
+                        total_power_diverter_price,
+                        annual_savings,
+                        inflation_rate
+                    )
+                    st.subheader("Gas Costs & Payback")
                     st.write(f"Annual gas cost without solar diversion: £{total_gas_cost:,.2f}")
                     st.write(f"Annual gas cost with power diversion: £{(total_gas_cost - total_gas_savings):,.2f}")
                     st.write(f"Annual lost export revenue: £{((total_export - total_export_inc_pwr_diversion)):,.2f}")
-                    st.write(f"Annual gas cost with power diversion inc lost export revenue: £{(annual_gas_cost_inc_pwrd_export):,.2f}")
+                    st.write(
+                        f"Annual gas cost with diversion & lost export: £{annual_gas_cost_inc_pwrd_export:,.2f}"
+                    )
                     st.write(f"Number of Years until investment payback: {payback_years}")
-                    st.write(f"Annual Savings after investment payback: £{(total_gas_cost - annual_gas_cost_inc_pwrd_export):,.2f}")
-                elif chart_option == 'Electric':
-                    years, savings, payback_achieved, payback_years = calculate_payback(total_power_diverter_price, total_elec_cost - annual_electricity_cost_inc_pwrd_export, inflation_rate)
-                    
-                    st.write(f"Annual electricty Cost without solar diversion: £{total_elec_cost:,.2f}")
+                    st.write(
+                        f"Annual Savings after payback: £{annual_savings:,.2f}"
+                    )
+
+                elif chart_option == "Electric":
+                    annual_savings = total_elec_cost - annual_electricity_cost_inc_pwrd_export
+                    years, savings, payback_achieved, payback_years = calculate_payback(
+                        total_power_diverter_price,
+                        annual_savings,
+                        inflation_rate
+                    )
+                    st.subheader("Electric Costs & Payback")
+                    st.write(f"Annual electricity cost without solar diversion: £{total_elec_cost:,.2f}")
                     st.write(f"Annual electricity cost with power diversion: £{(total_elec_cost - total_mxed_savings):,.2f}")
-                    st.write(f"Annual lost export revenue: £{((total_export - total_export_inc_pwr_diversion)):,.2f}")
-                    st.write(f"Annual electricity cost with power diversion inc lost export revenue: £{(annual_electricity_cost_inc_pwrd_export):,.2f}")
+                    st.write(f"Annual lost export revenue: £{(total_export - total_export_inc_pwr_diversion):,.2f}")
+                    st.write(
+                        f"Annual electricity cost with diversion & lost export: £{annual_electricity_cost_inc_pwrd_export:,.2f}"
+                    )
                     st.write(f"Number of Years until investment payback: {payback_years}")
-                    st.write(f"Annual Savings after investment payback: £{(total_elec_cost - annual_electricity_cost_inc_pwrd_export):,.2f}")
+                    st.write(
+                        f"Annual Savings after payback: £{annual_savings:,.2f}"
+                    )
+
                 else:
-                    years, savings, payback_achieved, payback_years = calculate_payback(total_power_diverter_price, total_heatpump_cost - annual_heatpump_cost_inc_pwrd_export, inflation_rate)
-
-                    st.write(f"Annual electricty cost for a Heat Pump without solar diversion: £{total_heatpump_cost:,.2f}")
-                    st.write(f"Annual electricty cost for a Heat Pump with power diverter: £{(total_heatpump_cost - total_mxed_heatpump_savings):,.2f}")
-                    st.write(f"Annual electricty cost for a Heat Pump used for power diversion with solar surplus tracking: £{(total_heatpump_cost - total_peak_heatpump_only_savings):,.2f}")
-                    st.write(f"Annual lost export revenue: £{((total_export - total_export_inc_pwr_diversion)):,.2f}")
-                    st.write(f"Annual electricty cost for a Heat Pump with power diversion inc lost export revenue: £{(annual_heatpump_cost_inc_pwrd_export):,.2f}")
+                    annual_savings = total_heatpump_cost - annual_heatpump_cost_inc_pwrd_export
+                    years, savings, payback_achieved, payback_years = calculate_payback(
+                        total_power_diverter_price,
+                        annual_savings,
+                        inflation_rate
+                    )
+                    st.subheader("Heat Pump Costs & Payback")
+                    st.write(
+                        f"Annual electricity cost for a Heat Pump without solar diversion: £{total_heatpump_cost:,.2f}"
+                    )
+                    st.write(
+                        f"Annual electricity cost for a Heat Pump with power diversion: "
+                        f"£{(total_heatpump_cost - total_mxed_heatpump_savings):,.2f}"
+                    )
+                    st.write(
+                        f"Annual electricity cost for a Heat Pump used for power diversion (HP only check): "
+                        f"£{(total_heatpump_cost - total_peak_heatpump_only_savings):,.2f}"
+                    )
+                    st.write(f"Annual lost export revenue: £{(total_export - total_export_inc_pwr_diversion):,.2f}")
+                    st.write(
+                        f"Annual cost for a Heat Pump with diversion & lost export: "
+                        f"£{annual_heatpump_cost_inc_pwrd_export:,.2f}"
+                    )
                     st.write(f"Number of Years until investment payback: {payback_years}")
-                    st.write(f"Annual Savings after investment payback: £{(total_heatpump_cost - annual_heatpump_cost_inc_pwrd_export):,.2f}")
+                    st.write(
+                        f"Annual Savings after payback: £{annual_savings:,.2f}"
+                    )
 
-                # Create a bar chart
-                fig1 = px.bar(x=years, y=savings, labels={'x': 'Years', 'y': 'Cumulative Savings (£)'}, title=f'Payback Period with Inflation ({chart_option})')
+                # Plot payback as a bar chart
+                fig1 = px.bar(
+                    x=years, 
+                    y=savings,
+                    labels={"x": "Years", "y": "Cumulative Savings (£)"},
+                    title=f"Payback Period with Inflation ({chart_option})"
+                )
                 st.plotly_chart(fig1, use_container_width=True)
-
+                
                 if not payback_achieved:
-                    st.warning("Scenario does not payback financially.")
+                    st.warning("Scenario does not pay back financially within the defined timeframe.")
 
                 st.divider()
 
-                # Create a multi-line plot
+                # Multi-line monthly chart
                 fig = px.line(
                     df_elec,
-                    x='Month',
-                    y=['Solar Generation', 'Surplus Energy',
-                        'Electrical Consumption', 'Hot Water Consumption', 'Solar Power Diverted'],
-                    title='Monthly Energy Generation And Consumption ',
-                    labels={'value': 'Energy (kWh)', 'variable': 'Metrics'}
+                    x="Month",
+                    y=[
+                        "Solar Generation",
+                        "Surplus Energy",
+                        "Electrical Consumption",
+                        "Hot Water Consumption",
+                        "Solar Power Diverted"
+                    ],
+                    title="Monthly Energy Generation and Consumption",
+                    labels={"value": "Energy (kWh)", "variable": "Metrics"}
                 )
                 fig.update_layout(
-                autosize=True,
-                margin=dict(l=20, r=20, t=30, b=100),  # Adjust bottom margin to accommodate legend
-                height=500,
-                legend=dict(
-                    orientation="h",
-                    yanchor="bottom",
-                    y=-0.4,
-                    xanchor="left",
-                    x=0
+                    autosize=True,
+                    margin=dict(l=20, r=20, t=30, b=100),
+                    height=500,
+                    legend=dict(
+                        orientation="h",
+                        yanchor="bottom",
+                        y=-0.4,
+                        xanchor="left",
+                        x=0
                     )
                 )
                 st.plotly_chart(fig, use_container_width=True)
 
                 st.divider()
 
-                with st.expander("See all data"):
+                # Optional expansions for debugging
+                with st.expander("See all data (debug)"):
                     st.dataframe(df)
                     st.dataframe(df_elec)
                     st.dataframe(df_costs)
@@ -420,45 +729,51 @@ if selected_address:
                     st.dataframe(df_savings)
 
             except Exception as e:
-                st.write("An error occurred while processing the data:", str(e))
-
+                st.error(f"An error occurred while processing the data: {str(e)}")
         else:
-            st.write("Failed to retrieve data from the API. Please check your inputs and try again.")
+            st.error("Failed to retrieve data from the API. Please check your inputs and try again.")
 
-
-# Creating a footer using columns
-footer_col1, footer_col2, footer_col3 = st.columns([1,6,1])
+# ----------------------------------------------------------------------------
+#                                    Footer
+# ----------------------------------------------------------------------------
+footer_col1, footer_col2, footer_col3 = st.columns([1, 6, 1])
 with footer_col2:
-    st.markdown("""
-    <hr style="height:1px;border:none;color:#333;background-color:#333;" />
-    <p style="text-align: center; color: grey;">
-        &copy; {year} Andrew Ireland. All Rights Reserved.
-    </p>
-    """.format(year=current_year), unsafe_allow_html=True)
-  
-st.markdown("""
-<small style="color: grey;">
-       
-***Disclaimer:**  
-While I have aimed to make this calculator as accurate as possible, please note that the results are estimates. These estimates should be used to inform decisions but not as the sole basis for making significant financial commitments. The solar data utilized in this application is sourced from the Photovoltaic Geographical Information System (PVGIS).*
-</small>
-""", unsafe_allow_html=True)`,
+    st.markdown(
+        f"""
+        <hr style="height:1px;border:none;color:#333;background-color:#333;" />
+        <p style="text-align: center; color: grey;">
+            &copy; {current_year} Andrew Ireland. All Rights Reserved.
+        </p>
+        """,
+        unsafe_allow_html=True
+    )
 
-},
-streamlitConfig: {
-      "theme.base": "dark",
-      "theme.primaryColor": "",
-      "theme.backgroundColor": "black",
-      "theme.secondaryBackgroundColor": "",
-      "theme.textColor": "",
-      "client.toolbarMode": "minimal",
-      "client.showErrorDetails": false,
-    },
-  },
-  document.getElementById("root")
+st.markdown(
+    """
+    <small style="color: grey;">
+    <strong>Disclaimer:</strong><br>
+    While I have aimed to make this calculator as accurate as possible, please note that the results are estimates.
+    These estimates should be used to inform decisions but not as the sole basis for making significant financial
+    commitments. The solar data utilized in this application is sourced from the Photovoltaic Geographical Information
+    System (PVGIS).
+    </small>
+    """,
+    unsafe_allow_html=True
 )
-
+            `,
+          },
+          streamlitConfig: {
+            "theme.base": "dark",
+            "theme.primaryColor": "",
+            "theme.backgroundColor": "black",
+            "theme.secondaryBackgroundColor": "",
+            "theme.textColor": "",
+            "client.toolbarMode": "minimal",
+            "client.showErrorDetails": false
+          }
+        },
+        document.getElementById("root")
+      )
     </script>
   </body>
-  <!-- Generated from stlite sharing (https://edit.share.stlite.net/), and the source version is 9605754c6cd12a2f17da6aee306239bb690dc81a -->
 </html>
