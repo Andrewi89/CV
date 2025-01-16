@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <title>stlite app</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.73.1/build/stlite.css"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.73.1/build/stlite.js"></script>
+    <script>
+stlite.mount(
+  {
+    requirements: ["streamlit", "streamlit_image_select"],
+    entrypoint: "streamlit_app.py",
+    files: {
+"streamlit_app.py": `
+
+import streamlit as st
+from streamlit_image_select import image_select
+from PIL import Image
+
+def estimate_annual_electricity_consumption(num_people, property_type, heating_type, has_ev=False, has_ac=False):
+    # Base consumption per property type
+    base_consumption = {
+        'Flat': 2000,
+        'Terraced': 2500,
+        'Semi-Detached': 3000,
+        'Detached': 3500
+    }
+
+    # Additional consumption per person beyond the first
+    additional_per_person = 500
+
+    # Adjust for heating type
+    heating_adjustment = 0
+    if heating_type == 'Electric':
+        heating_adjustment = 4000  # Electric heating adds significant consumption
+
+    # Adjust for high-energy appliances
+    ev_adjustment = 2500 if has_ev else 0
+    ac_adjustment = 1000 if has_ac else 0
+
+    # Calculate total consumption
+    total_consumption = base_consumption.get(property_type, 2500)
+    if num_people > 1:
+        total_consumption += (num_people - 1) * additional_per_person
+
+    total_consumption += heating_adjustment + ev_adjustment + ac_adjustment
+
+    return total_consumption
+
+# Streamlit app
+st.set_page_config(
+    page_title="Electricity Consumption Estimator",
+    page_icon="🏡",
+    layout="centered"
+)
+
+st.title("Generate your own energy & slash those energy bills in ONE!")
+st.write("See how much you could save with myenergi ONE!")
+
+# Input: Number of People
+st.header("Tell us about your household")
+num_people = st.slider(
+    "👨‍👩‍👧‍👦 Number of People in the Household", 
+    1, 10, value=2
+)
+
+# Property Type Selection
+st.write("### Select your House Type")
+property_type_icons = {
+    "Terraced": "images/houseTypes/Terraced.png",
+    "Semi-Detached": "images/houseTypes/Semi-Detached.png",
+    "Detached": "images/houseTypes/Detached.png",
+    "Large": "images/houseTypes/Large.png"
+}
+
+selected_property_type = image_select(
+    label="Choose your property type:",
+    images=list(property_type_icons.values()),
+    captions=list(property_type_icons.keys()),
+    use_container_width=True,
+    key="property-select"
+)
+st.write(f"**Selected Property Type:** {list(property_type_icons.keys())[list(property_type_icons.values()).index(selected_property_type)]}")
+
+# Heating Type Selection
+
+st.markdown("""
+    <style>
+    .image-container img {
+        width: 80px;  /* Set desired width */
+        height: 80px; /* Set desired height to make them square */
+        object-fit: contain; /* Keep the image aspect ratio */
+        display: inline-block;
+    }
+
+    .image-select-button {
+        display: inline-block;
+        margin: 0 10px; /* Adjust spacing between buttons */
+        padding: 5px; /* Optional padding */
+        width: 100px; /* Fixed button width */
+        height: 100px; /* Fixed button height */
+        text-align: center;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+st.write("### Select your Heating Type")
+heating_type_icons = {
+    "Gas": "https://img.icons8.com/?size=100&id=1950&format=png&color=000000",
+    "Electric": "https://img.icons8.com/?size=100&id=6703&format=png&color=000000"
+}
+st.markdown('<div class="image-container">', unsafe_allow_html=True)
+selected_heating_type = image_select(
+    label="Choose your heating type:",
+    images=list(heating_type_icons.values()),
+    captions=list(heating_type_icons.keys()),
+    use_container_width=False,
+    key="heating-select"
+)
+st.markdown('</div>', unsafe_allow_html=True)
+st.write(f"**Selected Heating Type:** {list(heating_type_icons.keys())[list(heating_type_icons.values()).index(selected_heating_type)]}")
+
+# Additional Questions
+has_ev = st.checkbox("🚗 Do you have an Electric Vehicle (EV)?", value=False)
+has_ac = st.checkbox("❄️ Do you have Air Conditioning (AC)?", value=False)
+
+# Estimate Consumption
+if st.button("Estimate Consumption"):
+    if selected_property_type and selected_heating_type:
+        estimated_savings = 0
+        estimated_consumption = estimate_annual_electricity_consumption(
+            num_people=num_people,
+            property_type=list(property_type_icons.keys())[list(property_type_icons.values()).index(selected_property_type)],
+            heating_type=list(heating_type_icons.keys())[list(heating_type_icons.values()).index(selected_heating_type)],
+            has_ev=has_ev,
+            has_ac=has_ac
+        )
+
+        st.write("### Your Estimated Energy Consumption...")
+        col7, col8 = st.columns([1, 1])
+        with col7:
+            st.success(f"{estimated_consumption // 12:,} kWh Monthly")
+        with col8:
+            st.success(f"{estimated_consumption:,} kWh Annually")
+
+        st.write("### Congratulations, you could save...")
+        col7, col8 = st.columns([1, 1])
+        with col7:
+            st.success(f"£{estimated_savings // 12:,}.00 Monthly")
+        with col8:
+            st.success(f"£{estimated_savings:,}.00 Annually")
+    else:
+        st.error("Please select both a property type and a heating type.")
+
+# Footer
+st.markdown("---")
+
+
+`,
+
+},
+streamlitConfig: {
+      "theme.base": "dark",
+      "theme.primaryColor": "",
+      "theme.backgroundColor": "black",
+      "theme.secondaryBackgroundColor": "",
+      "theme.textColor": "",
+      "client.toolbarMode": "minimal",
+      "client.showErrorDetails": false,
+    },
+  },
+  document.getElementById("root")
+)
+
+    </script>
+  </body>
+  <!-- Generated from stlite sharing (https://edit.share.stlite.net/), and the source version is 9605754c6cd12a2f17da6aee306239bb690dc81a -->
+</html>
