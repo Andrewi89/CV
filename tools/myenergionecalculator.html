@@ -37,6 +37,21 @@ def estimate_annual_electricity_consumption(num_people, property_type, heating_t
         'Detached': 3500
     }
 
+   import streamlit as st
+from streamlit_image_select import image_select
+from PIL import Image
+import requests
+
+
+def estimate_annual_electricity_consumption(num_people, property_type, heating_type, has_ev=False, has_ac=False):
+    # Base consumption per property type
+    base_consumption = {
+        'Flat': 2000,
+        'Terraced': 2500,
+        'Semi-Detached': 3000,
+        'Detached': 3500
+    }
+
     # Additional consumption per person beyond the first
     additional_per_person = 500
 
@@ -58,32 +73,39 @@ def estimate_annual_electricity_consumption(num_people, property_type, heating_t
 
     return total_consumption
 
+
 # Streamlit app
 st.set_page_config(
-    page_title="myenergi one prototype",
-    page_icon="🏡",
+    page_title="Electricity Consumption Estimator",
+    page_icon="🏠",
     layout="centered"
 )
 
 st.title("Generate your own energy & slash those energy bills in ONE!")
 st.write("See how much you could save with myenergi ONE!")
 
-# Input: Number of People
-st.header("Tell us about your household")
+# ----------------------------------------------------------------------
+# Unified Input Section: Household Details & Energy Equipment Information
+# ----------------------------------------------------------------------
+st.header("Tell us about your household and energy equipment")
+
+# Solar and Battery equipment details
+postcode = st.text_input("Enter your postcode for solar estimates:")
+
+# Household details
 num_people = st.slider(
-    "👨‍👩‍👧‍👦 Number of People in the Household", 
+    "👨‍👩‍👧‍👦 Number of People in the Household",
     1, 10, value=2
 )
 
 # Property Type Selection
-st.write("### Select your House Type")
+st.subheader("Select your House Type")
 property_type_icons = {
     "Terraced": "images/houseTypes/Terraced.png",
     "Semi-Detached": "images/houseTypes/Semi-Detached.png",
     "Detached": "images/houseTypes/Detached.png",
     "Large": "images/houseTypes/Large.png"
 }
-
 selected_property_type = image_select(
     label="Choose your property type:",
     images=list(property_type_icons.values()),
@@ -91,31 +113,33 @@ selected_property_type = image_select(
     use_container_width=True,
     key="property-select"
 )
-st.write(f"**Selected Property Type:** {list(property_type_icons.keys())[list(property_type_icons.values()).index(selected_property_type)]}")
+if selected_property_type:
+    selected_property_str = list(property_type_icons.keys())[list(
+        property_type_icons.values()).index(selected_property_type)]
+    st.write(f"**Selected Property Type:** {selected_property_str}")
+else:
+    selected_property_str = None
 
 # Heating Type Selection
-
+st.subheader("Select your Heating Type")
 st.markdown("""
     <style>
     .image-container img {
-        width: 80px;  /* Set desired width */
-        height: 80px; /* Set desired height to make them square */
-        object-fit: contain; /* Keep the image aspect ratio */
+        width: 80px;
+        height: 80px;
+        object-fit: contain;
         display: inline-block;
     }
-
     .image-select-button {
         display: inline-block;
-        margin: 0 10px; /* Adjust spacing between buttons */
-        padding: 5px; /* Optional padding */
-        width: 100px; /* Fixed button width */
-        height: 100px; /* Fixed button height */
+        margin: 0 10px;
+        padding: 5px;
+        width: 100px;
+        height: 100px;
         text-align: center;
     }
     </style>
 """, unsafe_allow_html=True)
-
-st.write("### Select your Heating Type")
 heating_type_icons = {
     "Gas": "https://img.icons8.com/?size=100&id=1950&format=png&color=000000",
     "Electric": "https://img.icons8.com/?size=100&id=6703&format=png&color=000000"
@@ -129,42 +153,148 @@ selected_heating_type = image_select(
     key="heating-select"
 )
 st.markdown('</div>', unsafe_allow_html=True)
-st.write(f"**Selected Heating Type:** {list(heating_type_icons.keys())[list(heating_type_icons.values()).index(selected_heating_type)]}")
+if selected_heating_type:
+    selected_heating_str = list(heating_type_icons.keys())[list(
+        heating_type_icons.values()).index(selected_heating_type)]
+    st.write(f"**Selected Heating Type:** {selected_heating_str}")
+else:
+    selected_heating_str = None
 
-# Additional Questions
+# Additional household questions
 has_ev = st.checkbox("🚗 Do you have an Electric Vehicle (EV)?", value=False)
 has_ac = st.checkbox("❄️ Do you have Air Conditioning (AC)?", value=False)
 
-# Estimate Consumption
-if st.button("Estimate Consumption"):
-    if selected_property_type and selected_heating_type:
-        estimated_savings = 0
+system_size = st.slider("Recommended Solar PV System Size (kW)",
+                        min_value=1, max_value=20, value=4)
+battery_capacity = st.slider(
+    "Recommended Home Battery Storage Capacity (kWh)",
+    min_value=0.0, max_value=20.0, value=10.0, step=0.5
+)
+
+# --------------------------------------------------------------
+# Process & Display Calculations on Button Click
+# --------------------------------------------------------------
+if st.button("Estimate Consumption & Savings"):
+    # Validate that property and heating types are selected
+    if not selected_property_str or not selected_heating_str:
+        st.error("Please select both a property type and a heating type.")
+    else:
+        # Estimate energy consumption
         estimated_consumption = estimate_annual_electricity_consumption(
             num_people=num_people,
-            property_type=list(property_type_icons.keys())[list(property_type_icons.values()).index(selected_property_type)],
-            heating_type=list(heating_type_icons.keys())[list(heating_type_icons.values()).index(selected_heating_type)],
+            property_type=selected_property_str,
+            heating_type=selected_heating_str,
             has_ev=has_ev,
             has_ac=has_ac
         )
 
+        # Display estimated consumption
         st.write("### Your Estimated Energy Consumption...")
-        col7, col8 = st.columns([1, 1])
-        with col7:
+        col1, col2 = st.columns(2)
+        with col1:
             st.success(f"{estimated_consumption // 12:,} kWh Monthly")
-        with col8:
+        with col2:
             st.success(f"{estimated_consumption:,} kWh Annually")
 
-        st.write("### Congratulations, you could save...")
-        col7, col8 = st.columns([1, 1])
-        with col7:
-            st.success(f"£{estimated_savings // 12:,}.00 Monthly")
-        with col8:
-            st.success(f"£{estimated_savings:,}.00 Annually")
-    else:
-        st.error("Please select both a property type and a heating type.")
+    # -----------------------------
+    # Solar Savings Estimation
+    # -----------------------------
+    if postcode.strip() != "":
+        st.write("### Potential Solar Savings")
+        postcode_clean = postcode.strip()
+        postcode_url = f"http://api.postcodes.io/postcodes/{postcode_clean}"
+        try:
+            post_response = requests.get(postcode_url, timeout=10)
+            post_data = post_response.json()
+        except Exception as e:
+            st.error(f"Error retrieving postcode data: {e}")
+            post_data = None
 
-# Footer
+        if post_data and post_data.get("status") == 200:
+            result = post_data.get("result")
+            lat = result.get("latitude")
+            lon = result.get("longitude")
+            st.write(f"**Geolocation:** {lat:.4f}, {lon:.4f}")
+
+            # Call the PVGIS API using geolocation, system size and request JSON output.
+            pv_url = (
+                f"https://re.jrc.ec.europa.eu/api/v5_2/PVcalc?"
+                f"lat={lat}&lon={lon}&peakpower={system_size}&loss=14&angle=35&aspect=180&outputformat=json"
+            )
+            headers = {"User-Agent": "Mozilla/5.0"}
+            try:
+                pv_response = requests.get(pv_url, timeout=10, headers=headers)
+                if pv_response.ok:
+                    if not pv_response.text.strip():
+                        st.error("PVGIS API returned an empty response.")
+                        pv_data = None
+                    else:
+                        try:
+                            pv_data = pv_response.json()
+                        except Exception as e:
+                            st.error(
+                                "Error decoding PVGIS API JSON. Response was: " + pv_response.text)
+                            pv_data = None
+                else:
+                    st.error("Failed to retrieve data from the PVGIS API.")
+                    pv_data = None
+            except Exception as e:
+                st.error(f"Error calling PVGIS API: {e}")
+                pv_data = None
+
+            if pv_data:
+                # Look for annual production in the JSON response. (Note: field names in the JSON response may differ.)
+                pv_energy = pv_data.get("outputs", {}).get(
+                    "ac", {}).get("E_annual")
+                if pv_energy is None:
+                    pv_energy = pv_data.get("outputs", {}).get(
+                        "totals", {}).get("fixed", {}).get("E_y")
+                if pv_energy:
+                    electricity_rate = 0.15  # £ per kWh (assumed)
+                    solar_savings = pv_energy * electricity_rate
+                    col5, col6 = st.columns(2)
+                    with col5:
+                        st.info(
+                            f"Annual Solar Production: {pv_energy:,.0f} kWh")
+                    with col6:
+                        st.info(
+                            f"Potential Savings: £{solar_savings:,.2f} per year")
+                else:
+                    st.error(
+                        "Could not extract solar production data from PVGIS response.")
+        else:
+            st.error("Invalid postcode. Please check and try again.")
+
+    # ----------------------------------------------
+    # Battery Storage Savings Estimation (MGD-003)
+    # ----------------------------------------------
+    if battery_capacity > 0:
+        st.write("### Potential Battery Storage Savings")
+        battery_cycles = 250         # Typical cycles per year
+        battery_efficiency = 0.8     # Round-trip efficiency
+        tariff_diff = 0.10           # Saving per kWh stored/exchanged (£)
+        battery_savings = battery_capacity * \
+            battery_cycles * battery_efficiency * tariff_diff
+        col7, col8 = st.columns(2)
+        with col7:
+            st.info(f"Battery Size: {battery_capacity} kWh")
+        with col8:
+            st.info(f"Estimated Savings: £{battery_savings:,.2f} per year")
+    else:
+        st.write("### Battery Storage Savings")
+        st.info("No battery storage selected.")
+
+    # Placeholder for energy savings from efficiency measures (update as needed)
+    estimated_savings = 0
+    st.write("### Congratulations, you could save...")
+    col3, col4 = st.columns(2)
+    with col3:
+        st.success(f"£{estimated_savings // 12:,}.00 Monthly")
+    with col4:
+        st.success(f"£{estimated_savings:,}.00 Annually")
+
 st.markdown("---")
+
 
 
 `,
